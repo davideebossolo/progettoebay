@@ -2,11 +2,21 @@ const ebayAuth = require('../config/ebay-config');
 
 // 👉 Genera l’URL di autorizzazione e reindirizza a eBay
 const getAuthUrl = (req, res) => {
-  const scopes = ['https://api.sandbox.ebay.com/oauth/api_scope']; // Puoi aggiungere altri se ti servono
-  const authUrl = ebayAuth.generateUserAuthorizationUrl('SANDBOX', scopes);
+  const scopes = ['https://api.sandbox.ebay.com/oauth/api_scope'];
 
-  console.log('🔗 Redirecting user to eBay OAuth:', authUrl);
-  res.redirect(authUrl);
+  console.log('🔍 Chiamo generateUserAuthorizationUrl con:');
+  console.log('→ Client ID:', process.env.EBAY_CLIENT_ID);
+  console.log('→ Secret:', process.env.EBAY_CLIENT_SECRET);
+  console.log('→ Redirect URI:', process.env.EBAY_REDIRECT_URI);
+
+  try {
+    const authUrl = ebayAuth.generateUserAuthorizationUrl('SANDBOX', scopes);
+    console.log('🔗 Redirecting to:', authUrl);
+    res.redirect(authUrl);
+  } catch (err) {
+    console.error('❌ ERRORE generateUserAuthorizationUrl:', err.message);
+    res.status(500).send('Errore OAuth: ' + err.message);
+  }
 };
 
 // 👉 Callback: riceve il codice da eBay e lo scambia per un access_token

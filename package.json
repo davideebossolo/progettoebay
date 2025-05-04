@@ -10,8 +10,9 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "dotenv": "^16.4.7",
+    "dotenv": "^16.5.0",
     "ebay-api": "^9.2.0",
-    "ebay-oauth-nodejs-client": "^1.2.2"
+    "ebay-oauth-nodejs-client": "^1.2.2",
+    "express": "^5.1.0"
   }
 }

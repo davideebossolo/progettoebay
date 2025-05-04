@@ -19,31 +19,34 @@ const getAuthUrl = (req, res) => {
   }
 };
 
-// 👉 Callback: riceve il codice da eBay e lo scambia per un access_token
 const handleCallback = async (req, res) => {
   const code = req.query.code;
-
   if (!code) {
-    console.error('❌ Authorization code mancante!');
     return res.status(400).send('Authorization code mancante');
   }
 
-  console.log("🔑 Authorization code ricevuto:", code);
-
   try {
+    // Scambio code → token
     const token = await ebayAuth.exchangeCodeForAccessToken('SANDBOX', code);
 
-    console.log('✅ Access Token:', token.access_token);
+    // Su ebay‑oauth‑nodejs‑client ≥ 2.x le info sono in token.body
+    const accessToken  = token.access_token  || token.body?.access_token;
+    const refreshToken = token.refresh_token || token.body?.refresh_token;
+    const expiresIn    = token.expires_in    || token.body?.expires_in;
+
+    console.log('✅ Access Token:', accessToken);
+
     res.send(`
       <h2>✅ Login completato con successo!</h2>
-      <p><strong>Access Token:</strong> ${token.access_token}</p>
-      <p><strong>Scade tra:</strong> ${token.expires_in} secondi</p>
+      <p><strong>Access Token:</strong> ${accessToken}</p>
+      <p><strong>Scade tra:</strong> ${expiresIn} secondi</p>
     `);
-  } catch (error) {
-    console.error('❌ Errore nello scambio del codice:', error.response?.data || error.message || error);
-    res.status(500).send('❌ Errore durante lo scambio del codice con eBay.');
+  } catch (err) {
+    console.error('❌ Errore nello scambio del codice:', err.response?.data || err);
+    res.status(500).send('Errore nello scambio del codice con eBay');
   }
 };
+
 
 
 module.exports = {

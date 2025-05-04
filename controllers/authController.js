@@ -1,12 +1,13 @@
 const ebayAuth = require('../config/ebay-config');
+const tokenStore = require('../tokenStore');
 
-// 👉 Genera l’URL di autorizzazione e reindirizza a eBay
+// 👉 Avvia la login: genera URL e reindirizza
 const getAuthUrl = (req, res) => {
   const scopes = ['https://api.sandbox.ebay.com/oauth/api_scope'];
 
   console.log('🔍 Chiamo generateUserAuthorizationUrl con:');
   console.log('→ Client ID:', process.env.EBAY_CLIENT_ID);
-  console.log('→ Secret:', process.env.EBAY_CLIENT_SECRET);
+  console.log('→ Secret:', process.env.EBAY_CLIENT_SECRET?.slice(0, 10) + '…');
   console.log('→ Redirect URI:', process.env.EBAY_REDIRECT_URI);
 
   try {
@@ -19,22 +20,23 @@ const getAuthUrl = (req, res) => {
   }
 };
 
+// 👉 Callback dopo il login su eBay
 const handleCallback = async (req, res) => {
   const code = req.query.code;
-  if (!code) {
-    return res.status(400).send('Authorization code mancante');
-  }
+  if (!code) return res.status(400).send('Authorization code mancante');
 
   try {
-    // Scambio code → token
     const token = await ebayAuth.exchangeCodeForAccessToken('SANDBOX', code);
 
-    // Su ebay‑oauth‑nodejs‑client ≥ 2.x le info sono in token.body
+    // Compatibile con versione ≥ 2.x della libreria
     const accessToken  = token.access_token  || token.body?.access_token;
     const refreshToken = token.refresh_token || token.body?.refresh_token;
     const expiresIn    = token.expires_in    || token.body?.expires_in;
 
-    console.log('✅ Access Token:', accessToken);
+    // ✅ Salviamo il token in RAM
+    tokenStore.set(accessToken);
+
+    console.log('✅ Access Token salvato:', accessToken);
 
     res.send(`
       <h2>✅ Login completato con successo!</h2>
@@ -46,8 +48,6 @@ const handleCallback = async (req, res) => {
     res.status(500).send('Errore nello scambio del codice con eBay');
   }
 };
-
-
 
 module.exports = {
   getAuthUrl,

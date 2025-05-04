@@ -1,10 +1,15 @@
-require('dotenv').config();
 const express = require('express');
 const app = express();
+require('dotenv').config();
+
+// Importa le rotte
 const authRoutes = require('./routes/authRoutes');
 
+// Collega le rotte
 app.use('/', authRoutes);
 
-app.listen(3000, () => {
-  console.log('Server in ascolto sulla porta 3000');
+// Porta dinamica (Render imposta process.env.PORT)
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`✅ Server attivo sulla porta ${PORT}`);
 });

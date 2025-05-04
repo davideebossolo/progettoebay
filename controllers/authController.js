@@ -1,7 +1,7 @@
 const ebayAuth = require('../config/ebay-config');
 const tokenStore = require('../tokenStore');
 
-// 👉 Avvia la login: genera URL e reindirizza
+// 👉 Genera l’URL di autorizzazione e reindirizza a eBay
 const getAuthUrl = (req, res) => {
   const scopes = ['https://api.sandbox.ebay.com/oauth/api_scope'];
 
@@ -20,23 +20,27 @@ const getAuthUrl = (req, res) => {
   }
 };
 
-// 👉 Callback dopo il login su eBay
+// 👉 Callback dopo login
 const handleCallback = async (req, res) => {
   const code = req.query.code;
-  if (!code) return res.status(400).send('Authorization code mancante');
+  if (!code) {
+    return res.status(400).send('Authorization code mancante');
+  }
 
   try {
-    const token = await ebayAuth.exchangeCodeForAccessToken('SANDBOX', code);
+    // Scambia il codice con il token
+    const response = await ebayAuth.exchangeCodeForAccessToken('SANDBOX', code);
+    const token = response.body;
 
-    // Compatibile con versione ≥ 2.x della libreria
-    const accessToken  = token.access_token  || token.body?.access_token;
-    const refreshToken = token.refresh_token || token.body?.refresh_token;
-    const expiresIn    = token.expires_in    || token.body?.expires_in;
+    const accessToken = token.access_token;
+    const refreshToken = token.refresh_token;
+    const expiresIn = token.expires_in;
 
-    // ✅ Salviamo il token in RAM
+    // ✅ Salva il token
     tokenStore.set(accessToken);
 
     console.log('✅ Access Token salvato:', accessToken);
+    console.log('⏳ Scade tra:', expiresIn, 'secondi');
 
     res.send(`
       <h2>✅ Login completato con successo!</h2>

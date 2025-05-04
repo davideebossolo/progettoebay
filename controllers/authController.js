@@ -28,22 +28,23 @@ const handleCallback = async (req, res) => {
     return res.status(400).send('Authorization code mancante');
   }
 
+  console.log("🔑 Authorization code ricevuto:", code);
+
   try {
     const token = await ebayAuth.exchangeCodeForAccessToken('SANDBOX', code);
-    
-    console.log('✅ Access Token:', token.access_token);
-    console.log('🔐 Refresh Token:', token.refresh_token); // opzionale
 
+    console.log('✅ Access Token:', token.access_token);
     res.send(`
       <h2>✅ Login completato con successo!</h2>
       <p><strong>Access Token:</strong> ${token.access_token}</p>
       <p><strong>Scade tra:</strong> ${token.expires_in} secondi</p>
     `);
   } catch (error) {
-    console.error('❌ Errore nello scambio del codice:', error);
-    res.status(500).send('Errore durante lo scambio del codice con eBay.');
+    console.error('❌ Errore nello scambio del codice:', error.response?.data || error.message || error);
+    res.status(500).send('❌ Errore durante lo scambio del codice con eBay.');
   }
 };
+
 
 module.exports = {
   getAuthUrl,

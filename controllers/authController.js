@@ -3,7 +3,11 @@ const tokenStore = require('../tokenStore');
 
 // 👉 Genera l’URL di autorizzazione e reindirizza a eBay
 const getAuthUrl = (req, res) => {
-  const scopes = ['https://api.sandbox.ebay.com/oauth/api_scope'];
+  const scopes = [
+    'https://api.ebay.com/oauth/api_scope',                // obbligatorio
+    'https://api.ebay.com/oauth/api_scope/sell.inventory'  // accesso inventario
+  ];
+  
 
   console.log('🔍 Chiamo generateUserAuthorizationUrl con:');
   console.log('→ Client ID:', process.env.EBAY_CLIENT_ID);

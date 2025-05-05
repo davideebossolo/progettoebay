@@ -23,35 +23,34 @@ const getAuthUrl = (req, res) => {
 // 👉 Callback dopo login
 const handleCallback = async (req, res) => {
   const code = req.query.code;
-  if (!code) {
-    return res.status(400).send('Authorization code mancante');
-  }
+  if (!code) return res.status(400).send('Authorization code mancante');
 
   try {
-    // Scambia il codice con il token
+    // 1. Ottieni la risposta
     const response = await ebayAuth.exchangeCodeForAccessToken('SANDBOX', code);
-    const token = response.body;
+    // 2. Estrarre sempre da response.body
+    const { access_token, refresh_token, expires_in } = response.body;
 
-    const accessToken = token.access_token;
-    const refreshToken = token.refresh_token;
-    const expiresIn = token.expires_in;
+    if (!access_token) {
+      console.error('❌ access_token assente nella risposta:', response.body);
+      return res.status(500).send('Token assente nella risposta eBay');
+    }
 
-    // ✅ Salva il token
-    tokenStore.set(accessToken);
-
-    console.log('✅ Access Token salvato:', accessToken);
-    console.log('⏳ Scade tra:', expiresIn, 'secondi');
+    // 3. Salva in RAM
+    tokenStore.set(access_token);
+    console.log('✅ Access Token salvato:', access_token);
 
     res.send(`
       <h2>✅ Login completato con successo!</h2>
-      <p><strong>Access Token:</strong> ${accessToken}</p>
-      <p><strong>Scade tra:</strong> ${expiresIn} secondi</p>
+      <p><strong>Access Token:</strong> ${access_token}</p>
+      <p><strong>Scade tra:</strong> ${expires_in} secondi</p>
     `);
   } catch (err) {
-    console.error('❌ Errore nello scambio del codice:', err.response?.data || err);
+    console.error('❌ Errore callback:', err.response?.data || err);
     res.status(500).send('Errore nello scambio del codice con eBay');
   }
 };
+
 
 module.exports = {
   getAuthUrl,

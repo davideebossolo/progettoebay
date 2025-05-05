@@ -5,10 +5,13 @@ require('dotenv').config();
 // Importa le rotte
 const authRoutes = require('./routes/authRoutes');
 const apiRoutes = require('./routes/apiRoutes');
+const staticRoutes = require('./routes/staticRoutes');
+
 
 // Collega le rotte su percorsi distinti
 app.use('/auth', authRoutes);
 app.use('/api', apiRoutes);
+app.use('/', staticRoutes);
 
 // Porta dinamica (Render imposta process.env.PORT)
 const PORT = process.env.PORT || 3000;
